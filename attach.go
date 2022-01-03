@@ -64,7 +64,25 @@ func (email *Email) Attach(file *File) *Email {
 }
 
 func getAttachmentType(file *File) (attachType, error) {
-	return nil
+	if len(file.Data) > 0 {
+		if len(file.Name) == 0 {
+			return 0, errors.New("attach from bytes requires a name")
+		}
+		return attachData, nil
+	}
+
+	if len(file.B64Data) > 0 {
+		if len(file.Name) == 0 {
+			return 0, errors.New("attach from base64 string requires a name")
+		}
+		return attachB64, nil
+	}
+
+	if len(file.FilePath) > 0 {
+		return attachFile, nil
+	}
+
+	return 0, errors.New("empty attachment")
 }
 
 func (email *Email) attachB64(file *File) error {
@@ -76,4 +94,9 @@ func (email *Email) attachFile(file *File) error {
 }
 
 func (email *Email) attachData(file *File) {
+	if file.Inline {
+		email.inlines = append(email.inlines, file)
+	} else {
+		email.attachments = append(email.attachments, file)
+	}
 }
