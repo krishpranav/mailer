@@ -2,6 +2,7 @@ package mailer
 
 import (
 	"errors"
+	"io/ioutil"
 	"mime"
 	"path/filepath"
 )
@@ -90,6 +91,18 @@ func (email *Email) attachB64(file *File) error {
 }
 
 func (email *Email) attachFile(file *File) error {
+	data, err := ioutil.ReadFile(file.FilePath)
+	if err != nil {
+		return errors.New("Mail Error: Failed to add file error: " + err.Error())
+	}
+
+	email.attachData(&File{
+		Name:     file.Name,
+		MimeType: file.MimeType,
+		Data:     data,
+		Inline:   file.Inline,
+	})
+
 	return nil
 }
 
