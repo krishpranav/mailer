@@ -1,6 +1,7 @@
 package mailer
 
 import (
+	"encoding/base64"
 	"errors"
 	"io/ioutil"
 	"mime"
@@ -87,13 +88,25 @@ func getAttachmentType(file *File) (attachType, error) {
 }
 
 func (email *Email) attachB64(file *File) error {
+	dec, err := base64.StdEncoding.DecodeString(file.B64Data)
+	if err != nil {
+		return errors.New("Mail Error: Failed to decode base64 attachment with following error: " + err.Error())
+	}
+
+	email.attachData(&File{
+		Name:     file.Name,
+		MimeType: file.MimeType,
+		Data:     dec,
+		Inline:   file.Inline,
+	})
+
 	return nil
 }
 
 func (email *Email) attachFile(file *File) error {
 	data, err := ioutil.ReadFile(file.FilePath)
 	if err != nil {
-		return errors.New("Mail Error: Failed to add file error: " + err.Error())
+		return errors.New("Mail Error: Failed to add file with following error: " + err.Error())
 	}
 
 	email.attachData(&File{
